@@ -68,7 +68,7 @@ jobs:
       - name: Run sphinx build
         run: sphinx-build -b html docs/ docs/_build/html -a
       - name: Upload documentation as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: documentation
           path: docs/_build/html
