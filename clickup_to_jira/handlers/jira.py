@@ -95,6 +95,10 @@ class JIRAHandler(JIRA):
                 "description": ticket.description,
             }
 
+            # Epic Name is needed when creating an Epic
+            if issue_data["issuetype"]["name"] == "Epic":
+                issue_data["customfield_10011"] = issue_data["summary"]
+
             # Handle case where issue is subtasks
             parent_list = self.get_issue_from_summary(project, ticket.parent)
             if parent_list:
