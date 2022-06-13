@@ -95,6 +95,9 @@ class JIRAHandler(JIRA):
                 "description": ticket.description,
             }
 
+            if ticket.moscow:
+                issue_data["customfield_10034"] = { "value": ticket.moscow }
+
             # Handle case where issue is subtasks
             parent_list = self.get_issue_from_summary(project, ticket.parent)
             if parent_list:

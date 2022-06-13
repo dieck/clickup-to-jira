@@ -58,6 +58,27 @@ class ClickUpToJIRAConverter:
         else:
             ticket_assignee = None
 
+        # get MoSCoW value
+        moscow = None
+        try:
+            moscowfield = next(filter(lambda x: x.get('name')=="Moscow", ticket.custom_fields))
+
+            # might be 0, so I cannot use "or" inline
+            # so not: moscowvalue = moscowfield.get("value") or moscowfield.get("type_config",{}).get("default") or None
+            moscowvalue = moscowfield.get("value")
+            if moscowvalue is None:
+                moscowvalue = moscowfield.get("type_config",{}).get("default")
+
+            moscowoptions = moscowfield.get('type_config',{}).get('options')
+            moscowoption = next(filter(lambda x: x.get('orderindex')==moscowvalue, moscowoptions))
+            moscow = moscowoption.get('name')
+        except (IndexError, AttributeError):
+            moscow = None
+
+        # Clickup has wrong naming, process and Jira uses "Won't"
+        if moscow == "Would have":
+            moscow = "Won't have"
+
         # Return the new Ticket
         return Ticket(
             id=ticket.id,
@@ -70,6 +91,7 @@ class ClickUpToJIRAConverter:
             assignee=ticket_assignee,
             comments=ticket.comments,
             parent=ticket.parent,
+            moscow=moscow,
         )
 
     @staticmethod
