@@ -312,6 +312,7 @@ class JIRAHandler(JIRA):
         ]
         return proper_issues
 
+    search_users_CACHE = {}
     def search_users(
         self,
         user,
@@ -333,12 +334,21 @@ class JIRAHandler(JIRA):
         :param bool includeInactive: If true, then inactive users are included
             in the results.
         """
+        if self.search_users_CACHE.get(user):
+          return self.search_users_CACHE.get(user)
 
         # if no user object is given, obviously no user will be found
         if not user:
             # still use function to return proper empty set for handling after return
             # todo: performance improvement: find our proper format and return empty set instead of actually doing a search
-            return self._fetch_pages(User, None, "user/search", startAt, maxResults, {"query": None})
+            # for now: search for empty users only once. Should normally not happen, but maybe due to 0, None, False, empty string etc
+            if self.search_users_CACHE["-EMPTY-"]:
+                self.search_users_CACHE[user] = self.search_users_CACHE["-EMPTY-"]
+            else:
+                empty = self._fetch_pages(User, None, "user/search", startAt, maxResults, {"query": None})
+                self.search_users_CACHE[user] = empty
+                self.search_users_CACHE["-EMPTY-"] = empty
+            return self.search_users_CACHE[user]
 
         # first attempt: try to locate by mail address
         params = {
@@ -350,7 +360,8 @@ class JIRAHandler(JIRA):
             User, None, "user/search", startAt, maxResults, params
         )
         if fp and fp[0].accountId:
-          return fp
+            self.search_users_CACHE[user] = fp
+            return fp
 
         # second attempt: search by name
         params = {
@@ -358,9 +369,11 @@ class JIRAHandler(JIRA):
             "includeActive": includeActive,
             "includeInactive": includeInactive,
         }
-        return self._fetch_pages(
+        fp = self._fetch_pages(
             User, None, "user/search", startAt, maxResults, params
         )
+        self.search_users_CACHE[user] = fp
+        return fp
 
     def assign_issue(self, issue, assignee):
         """
