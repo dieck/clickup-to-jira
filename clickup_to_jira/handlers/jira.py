@@ -93,6 +93,7 @@ class JIRAHandler(JIRA):
                 else {"name": "Subtask"},
                 "summary": ticket.title,
                 "description": ticket.description,
+                "labels": ticket.labels,
             }
 
             # Handle case where issue is subtasks

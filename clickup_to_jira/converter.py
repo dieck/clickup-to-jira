@@ -58,6 +58,11 @@ class ClickUpToJIRAConverter:
         else:
             ticket_assignee = None
 
+        # tags to labels - and Jira labels cannot have spaces
+        ticket_labels = [tag.name.replace(" ", "-") for tag in ticket.tags]
+        # special internal request: set the list name as label
+        ticket_labels.append(ticket.list.get("name").replace(" ", "-"))
+
         # Return the new Ticket
         return Ticket(
             id=ticket.id,
@@ -70,6 +75,7 @@ class ClickUpToJIRAConverter:
             assignee=ticket_assignee,
             comments=ticket.comments,
             parent=ticket.parent,
+            labels=ticket_labels,
         )
 
     @staticmethod
