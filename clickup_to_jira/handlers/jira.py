@@ -95,6 +95,10 @@ class JIRAHandler(JIRA):
                 "description": ticket.description,
             }
 
+            # WARNING: customfield_10026 happened to be Jira Storypoints on our installation of Jira Cloud, might not always be the same number
+            if ticket.storypoints:
+                issue_data["customfield_10026"] = ticket.storypoints
+
             # Handle case where issue is subtasks
             parent_list = self.get_issue_from_summary(project, ticket.parent)
             if parent_list:
